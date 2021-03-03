@@ -1,0 +1,202 @@
+from random import randint
+import re
+import os
+from tkinter import *
+from tkinter import messagebox
+import datetime
+
+class User():
+    def __init__(self, name, password, balance, email, ids):
+        self.name = name
+        self.balance = balance
+        self.email = email
+        self.password = password
+        self.ids = ids
+
+    def open_account(self):
+        with open(str(ids) + ".txt", "w+") as f:
+            f.write("{}\n{}\n{}\n{}\n{}\n".format(self.ids, self.password, self.balance, self.name, self.email))
+        x=datetime.datetime.now()
+        with open(str(ids) + "rec.txt", "w+") as f:
+            f.write("The account is created at {}\n".format(x))
+
+    def account_balance(self):
+        with open(str(ids) + ".txt", "r+") as f:
+            b = f.readlines()
+        print("Your account balance is  (Euro) {} ".format(b[2]))
+
+    def deposit_money(self, deposit_amount):
+        self.deposit_amount = deposit_amount
+        with open(str(ids) + ".txt", "r+") as f:
+            a = f.readlines()
+        new_amount = int(self.deposit_amount) + int(a[2])
+        with open(str(ids) + ".txt", "r+") as f:
+            a = f.readlines()
+        with open(str(ids) + ".txt", "w+") as f:
+            f.write("{}{}{}\n{}{}".format(a[0], a[1], new_amount, a[3], a[4]))
+        print("\nYou deposit {} Euro, your new account balance is (Euro) {}  \n".format(deposit_amount,new_amount))
+        with open(str(ids) + "rec.txt", "a+") as f:
+            f.write("\n{} : You deposit {} Euro.Your new account balance is {}".format(datetime.datetime.now(),self.deposit_amount,new_amount))
+    def withdraw_money(self, withdraw_amount):
+        self.withdraw_amount = withdraw_amount
+        with open(str(ids) + ".txt", "r+") as f:
+            a = f.readlines()
+        if int(a[2]) >= self.withdraw_amount:
+            new_amount = int(a[2]) - self.withdraw_amount
+            with open(str(ids) + ".txt", "r+") as f:
+                a = f.readlines()
+            with open(str(ids) + ".txt", "w+") as f:
+                f.write("{}{}{}\n{}{}".format(a[0], a[1], new_amount, a[3], a[4]))
+            print("\nYou withdraw {} Euro, your new account balance is (Euro) {} \n".format(withdraw_amount,new_amount))
+            with open(str(ids) + "rec.txt", "a+") as f:
+                f.write("\n{} : You withdraw {} Euro.Your new account balance is {}".format(datetime.datetime.now(),self.withdraw_amount,new_amount))
+
+        else:
+            print("\nInsufficient Balance\n")
+
+    def transfer(self, transfer_amount, other_client_ids):
+        self.transfer_amount = transfer_amount
+        self.other_client_ids = other_client_ids
+        with open(str(ids) + ".txt", "r+") as f:
+            a = f.readlines()
+        if int(a[2]) >= int(self.transfer_amount):
+            new_amount = int(a[2]) - int(self.transfer_amount)
+            with open(str(ids) + ".txt", "r+") as f:
+                a = f.readlines()
+            with open(str(ids) + ".txt", "w+") as f:
+                f.write("{}{}{}\n{}{}".format(a[0], a[1], new_amount, a[3], a[4]))
+            with open(str(other_client_ids) + ".txt", "r+") as f:
+                a1 = f.readlines()
+            new_amount2 = int(a1[2]) + int(self.transfer_amount)
+            with open(str(other_client_ids) + ".txt", "w+") as f:
+                f.write("{}{}{}\n{}{}".format(a1[0], a1[1], new_amount2, a1[3], a1[4]))
+            print("\nYou deposit {} Euro to the {}Your new account balance is (Euro) {}  \n".format(transfer_amount,a1[3],new_amount))
+            with open(str(ids) + "rec.txt", "a+") as f:
+                f.write("\n{} : You transfer to {} account number, {} Euro.Your new account balance is {}\n".format(datetime.datetime.now(), self.other_client_ids, self.transfer_amount, new_amount ))
+            with open(str(other_client_ids) + "rec.txt", "a+") as f:
+                f.write("\n{} : You got from the {} account number, {} Euro. Your new account balance is {}\n".format(datetime.datetime.now(), self.ids, self.transfer_amount, a1[2] ))
+
+        else:
+            print ("\nInsufficient Balance\n")
+            with open(str(ids) + "rec.txt", "a+") as f:
+                f.write("\n{} : Due to lack of money you cannot transfer to {} account number, {} Euro.\n".format(datetime.datetime.now(), self.other_client_ids,self.transfer_amount ))
+    def oprecords(self):
+        with open(str(ids) + "rec.txt") as f:
+            a=f.readlines()
+        for i in a:
+            print(i)
+    def deleteacc(self):
+        os.remove(str(ids) + ".txt")
+        print("\nYour account was deleted.\nTo continue, you must open a new account\n")
+        with open(str(ids) + "rec.txt", "a+") as f:
+            f.write("\n{} : You deleted your account ".format(datetime.datetime.now()))
+
+class Bank(User):
+    bankname = "International Bank of Amsterdam"
+    def __init__(self): pass
+
+    def checkaccnum(self):
+        self.ids = randint(10000, 99999)
+        while True:
+            try:
+                with open(str(self.ids) + ".txt", "r+") as a:
+                    a.readlines()
+            except FileNotFoundError:
+                return self.ids
+                break
+            else:
+                self.ids = randint(10000, 99999)
+                continue
+
+while True:
+    
+    selection1 = input("""If you ALREADY have an account, please type "1"   \nIf you want to open a NEW account, please type "2"   :\n""")
+    if selection1 == "1":
+        try:
+            ids = input("\nEnter your account number:")
+            password = input("\nEnter your password: ")
+            with open(str(ids) + ".txt", "r+") as f:
+                a = f.readlines()
+            newuser = User(a[0], a[1], a[2], a[3], a[4])
+            bank = Bank()
+            print("\nWelcome", bank.bankname)
+            with open(str(ids) + ".txt", "r+") as f:
+                a = f.readlines()
+            if a[0] == (ids + "\n") and a[1] == (password + "\n"):
+                print("\nCorrect acc.number and password\n")
+                print("Hello {}Welcome to the {}\nYour account number is {}Your balance is (Euro) {} \n".format(a[3],bank.bankname,a[0],a[2]))
+            else:
+                print("Incorrect password")
+                continue
+            while True:
+                print(
+                    "\nFor account balance: 1 \n Insert money:     2 \n Withdraw money:       3 \n Transfer money:     4\n Delete account:     5:\n Logout:     6:\n Records:     7:\n")
+                selection2 = input("Select your operation : ")
+                if selection2 == "1":
+                    newuser.account_balance()
+                elif selection2 == "2":
+                    try:
+                        amount = input("How much money do you want to deposit?\n ")
+                        newuser.deposit_money(int(amount))
+                    except ValueError:
+                        print("Invalid value")
+                        continue
+                elif selection2 == "3":
+                    try:
+                        amount = input("How much money do you want to withdraw?\n ")
+                        newuser.withdraw_money(int(amount))
+                    except ValueError:
+                        print("Invalid value")
+                        continue
+                elif selection2 == "4":
+                    while True:
+                        try:
+                            acc = input("Enter the acc.number to be transfered: ")
+                            amount = input("How much money do you want to transfer? ")
+                            newuser.transfer(int(amount), acc)
+                            break
+                        except FileNotFoundError:
+                            print("Account number is invalid")
+                            continue
+                        except ValueError:
+                            print("Invalid value")
+                            continue
+                elif selection2 == "5":
+                    try:
+                        newuser.deleteacc()
+                        break
+                    except FileNotFoundError:
+                        continue
+                elif selection2 == "6":
+                    break
+                elif selection2 == "7":
+                    newuser.oprecords()
+                else:
+                    print("Please enter a valid selection")
+        except FileNotFoundError:
+            print("\nNo such account\n")
+            continue
+    elif selection1 == "2":
+        bank = Bank()
+        print("Welcome", bank.bankname)
+        while True:
+            try:
+                name = input("What is your name? ")
+                email = input("What is your email?")
+                balance = int(input("How much money do you want to insert initially?"))
+                password = input("Enter a password: ")
+                bank = Bank()
+                ids=bank.checkaccnum()
+
+            except ValueError:
+                print("Invalid entrance, try again")
+                continue
+            newuser = User(name, password, balance, email, ids)
+            print("\n\nWelcome {} to the {} \nYour account number is {} and your password is {}. \nYour balance is (Euro) {} \n".format(
+                name, bank.bankname,  ids, len(password) * "*", balance))
+            newuser.open_account()
+            break
+    else:
+        print("\nWrong selection:\n")
+        continue
+
